@@ -8,6 +8,7 @@ import { Spotlight } from "@/components/ui/spotlight";
 import { motion } from "framer-motion";
 import { Cpu, ArrowRight, Github, Chrome, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
 
 const features = [
   "Unlimited agent configurations",
@@ -24,10 +25,21 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signup } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validation
+    if (!name || !email || !password) {
+      toast({
+        title: "Missing fields",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (!agreeTerms) {
       toast({
         title: "Terms required",
@@ -37,17 +49,52 @@ export default function Signup() {
       return;
     }
 
-    setLoading(true);
-    
-    // Simulate signup
-    setTimeout(() => {
-      setLoading(false);
+    // Basic password validation
+    if (password.length < 8) {
       toast({
-        title: "Account created!",
-        description: "Welcome to WAAS. Let's build your first workflow.",
+        title: "Weak password",
+        description: "Password must be at least 8 characters long.",
+        variant: "destructive"
       });
-      navigate("/dashboard");
-    }, 1000);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const result = await signup(name, email, password);
+
+      if (result.success) {
+        toast({
+          title: "Account created!",
+          description: result.verificationSent 
+            ? "Please check your email to verify your account."
+            : "Welcome to WAAS. Let's build your first workflow.",
+        });
+
+        // Navigate based on whether verification is required
+        if (result.verificationSent) {
+          // navigate("/verify-email");
+          navigate("/dashboard"); // or verification page
+        } else {
+          navigate("/dashboard");
+        }
+      } else {
+        toast({
+          title: "Signup failed",
+          description: result.error || "Unable to create account. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -151,6 +198,7 @@ export default function Signup() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="bg-secondary/50 border-border/50 focus:border-primary"
+                required
               />
             </div>
 
@@ -163,6 +211,7 @@ export default function Signup() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="bg-secondary/50 border-border/50 focus:border-primary"
+                required
               />
             </div>
 
@@ -175,7 +224,12 @@ export default function Signup() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="bg-secondary/50 border-border/50 focus:border-primary"
+                required
+                minLength={8}
               />
+              <p className="text-xs text-muted-foreground">
+                Must be at least 8 characters long
+              </p>
             </div>
 
             <div className="flex items-start gap-3">

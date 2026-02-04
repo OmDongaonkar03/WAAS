@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,27 +7,71 @@ import { Spotlight } from "@/components/ui/spotlight";
 import { motion } from "framer-motion";
 import { Cpu, ArrowRight, Github, Chrome } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+  const { login } = useAuth();
+
+  // Get the page user was trying to access before being redirected to login
+  const from = location.state?.from?.pathname || "/dashboard";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    
-    // Simulate login
-    setTimeout(() => {
-      setLoading(false);
+
+    // Validation
+    if (!email || !password) {
       toast({
-        title: "Welcome back!",
-        description: "You've successfully signed in.",
+        title: "Missing fields",
+        description: "Please enter both email and password.",
+        variant: "destructive",
       });
-      navigate("/dashboard");
-    }, 1000);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const result = await login(email, password);
+
+      if (result.success) {
+        toast({
+          title: "Welcome back!",
+          description: "You've successfully signed in.",
+        });
+        // Redirect to the page they were trying to access or dashboard
+        navigate(from, { replace: true });
+      } else {
+        // Handle verification needed
+        if (result.needsVerification) {
+          toast({
+            title: "Verification required",
+            description: result.error || "Please verify your email before logging in.",
+            variant: "destructive",
+          });
+          // navigate("/verify-email");
+        } else {
+          toast({
+            title: "Login failed",
+            description: result.error || "Invalid email or password.",
+            variant: "destructive",
+          });
+        }
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -90,6 +134,7 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="bg-secondary/50 border-border/50 focus:border-primary"
+                required
               />
             </div>
 
@@ -110,6 +155,7 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="bg-secondary/50 border-border/50 focus:border-primary"
+                required
               />
             </div>
 
