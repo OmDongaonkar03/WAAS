@@ -7,6 +7,10 @@ import logger from "morgan";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
+import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
+
+import authRoutes from "./routes/auth.js";
+import profileRoutes from "./routes/profile.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -27,6 +31,12 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 app.use(express.static(path.join(__dirname, "public")));
+
+app.use("/auth", authRoutes);
+app.use("/profile", profileRoutes);
+
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });

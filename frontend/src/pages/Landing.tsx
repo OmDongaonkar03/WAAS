@@ -1,51 +1,56 @@
+import { useEffect } from "react";
 import { SplineScene } from "@/components/ui/splite";
 import { Spotlight } from "@/components/ui/spotlight";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { 
-  ArrowRight, 
-  Zap, 
-  Users, 
-  Brain, 
-  Shield, 
+import {
+  ArrowRight,
+  Zap,
+  Users,
+  Brain,
+  Shield,
   BarChart3,
   GitBranch,
-  CheckCircle2
+  CheckCircle2,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { useAuth } from "@/context/AuthContext";
 
 const features = [
   {
     icon: Users,
     title: "Multi-Agent Orchestration",
-    description: "Deploy specialized AI agents that work together, each with clear roles."
+    description:
+      "Deploy specialized AI agents that work together, each with clear roles.",
   },
   {
     icon: Brain,
     title: "Meta-Controller Intelligence",
-    description: "Intelligent controller breaks down complex tasks for optimal results."
+    description:
+      "Intelligent controller breaks down complex tasks for optimal results.",
   },
   {
     icon: GitBranch,
     title: "Iterative Refinement",
-    description: "Agents critique and improve each other's work for better outputs."
+    description:
+      "Agents critique and improve each other's work for better outputs.",
   },
   {
     icon: BarChart3,
     title: "Full Transparency",
-    description: "Track every step. See who did what and why."
+    description: "Track every step. See who did what and why.",
   },
   {
     icon: Shield,
     title: "Configurable Workflows",
-    description: "Turn agents on or off based on your needs."
+    description: "Turn agents on or off based on your needs.",
   },
   {
     icon: Zap,
     title: "Enterprise Ready",
-    description: "Built for scale with robust APIs and security."
-  }
+    description: "Built for scale with robust APIs and security.",
+  },
 ];
 
 const agents = [
@@ -56,6 +61,16 @@ const agents = [
 ];
 
 export default function Landing() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect if user is already logged in
+  useEffect(() => {
+    if (!user) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, navigate]);
+
   return (
     <AppLayout>
       {/* Hero Section */}
@@ -68,7 +83,7 @@ export default function Landing() {
         <div className="container mx-auto px-6 pt-24 lg:pt-32">
           <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-0">
             {/* Left content */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
@@ -78,27 +93,37 @@ export default function Landing() {
                 <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
                 Workforce as a Service
               </div>
-              
+
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium leading-[1.1] tracking-tight mb-6">
                 <span className="text-foreground">AI Teams</span>
                 <br />
-                <span className="text-muted-foreground text-light">That Work Together</span>
+                <span className="text-muted-foreground text-light">
+                  That Work Together
+                </span>
               </h1>
-              
+
               <p className="text-lg text-muted-foreground font-light max-w-lg mb-10 leading-relaxed">
-                Transform AI from a single assistant into a coordinated workforce. 
-                Create tasks, choose agents, and watch them collaborate.
+                Transform AI from a single assistant into a coordinated
+                workforce. Create tasks, choose agents, and watch them
+                collaborate.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
                 <Link to="/signup">
-                  <Button size="lg" className="btn-primary-glow gap-2 h-11 px-6">
+                  <Button
+                    size="lg"
+                    className="btn-primary-glow gap-2 h-11 px-6"
+                  >
                     Get Started
                     <ArrowRight className="w-4 h-4" />
                   </Button>
                 </Link>
                 <Link to="/dashboard">
-                  <Button size="lg" variant="outline" className="h-11 px-6 border-border text-foreground hover:bg-secondary">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="h-11 px-6 border-border text-foreground hover:bg-secondary"
+                  >
                     View Demo
                   </Button>
                 </Link>
@@ -113,13 +138,13 @@ export default function Landing() {
             </motion.div>
 
             {/* Right content - 3D Scene */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
               className="flex-1 relative h-[400px] lg:h-[550px] w-full"
             >
-              <SplineScene 
+              <SplineScene
                 scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
                 className="w-full h-full"
               />
@@ -131,7 +156,7 @@ export default function Landing() {
       {/* Agent Preview Section */}
       <section className="py-24 border-t border-border">
         <div className="container mx-auto px-6">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -141,7 +166,8 @@ export default function Landing() {
               Your AI Workforce
             </h2>
             <p className="text-muted-foreground font-light max-w-md mx-auto">
-              Each agent has a specialized role. Combine them to tackle complex problems.
+              Each agent has a specialized role. Combine them to tackle complex
+              problems.
             </p>
           </motion.div>
 
@@ -159,7 +185,9 @@ export default function Landing() {
                   <div className="w-2 h-2 rounded-full bg-muted-foreground" />
                 </div>
                 <h3 className="font-medium mb-1">{agent.name}</h3>
-                <p className="text-sm text-muted-foreground font-light">{agent.description}</p>
+                <p className="text-sm text-muted-foreground font-light">
+                  {agent.description}
+                </p>
               </motion.div>
             ))}
           </div>
@@ -169,7 +197,7 @@ export default function Landing() {
       {/* Features Section */}
       <section className="py-24 border-t border-border">
         <div className="container mx-auto px-6">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -195,7 +223,9 @@ export default function Landing() {
               >
                 <feature.icon className="w-5 h-5 text-muted-foreground mb-4" />
                 <h3 className="font-medium mb-2">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground font-light">{feature.description}</p>
+                <p className="text-sm text-muted-foreground font-light">
+                  {feature.description}
+                </p>
               </motion.div>
             ))}
           </div>
@@ -205,7 +235,7 @@ export default function Landing() {
       {/* Example Use Case */}
       <section className="py-24 border-t border-border">
         <div className="container mx-auto px-6">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -217,15 +247,28 @@ export default function Landing() {
                   See It In Action
                 </h2>
                 <p className="text-muted-foreground font-light mb-8">
-                  Ask: <span className="text-foreground">"Analyze whether we should launch a SaaS for developers in 2026."</span>
+                  Ask:{" "}
+                  <span className="text-foreground">
+                    "Analyze whether we should launch a SaaS for developers in
+                    2026."
+                  </span>
                 </p>
-                
+
                 <div className="space-y-4">
                   {[
-                    { agent: "Researcher", action: "Gathers market signals and data" },
+                    {
+                      agent: "Researcher",
+                      action: "Gathers market signals and data",
+                    },
                     { agent: "Analyst", action: "Reasons through trade-offs" },
-                    { agent: "Validator", action: "Checks assumptions and logic" },
-                    { agent: "Synthesizer", action: "Produces actionable conclusion" },
+                    {
+                      agent: "Validator",
+                      action: "Checks assumptions and logic",
+                    },
+                    {
+                      agent: "Synthesizer",
+                      action: "Produces actionable conclusion",
+                    },
                   ].map((step, index) => (
                     <motion.div
                       key={step.agent}
@@ -238,7 +281,10 @@ export default function Landing() {
                       <CheckCircle2 className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                       <div className="text-sm">
                         <span className="text-foreground">{step.agent}</span>
-                        <span className="text-muted-foreground"> — {step.action}</span>
+                        <span className="text-muted-foreground">
+                          {" "}
+                          — {step.action}
+                        </span>
                       </div>
                     </motion.div>
                   ))}
@@ -252,13 +298,28 @@ export default function Landing() {
                   <div className="w-2.5 h-2.5 rounded-full bg-muted" />
                 </div>
                 <div className="space-y-2 text-muted-foreground">
-                  <p><span className="text-foreground">→</span> Initializing workforce...</p>
-                  <p><span className="text-success">✓</span> Researcher agent active</p>
-                  <p><span className="text-success">✓</span> Analyst agent active</p>
-                  <p><span className="text-success">✓</span> Validator agent active</p>
-                  <p><span className="text-foreground">→</span> Processing task...</p>
+                  <p>
+                    <span className="text-foreground">→</span> Initializing
+                    workforce...
+                  </p>
+                  <p>
+                    <span className="text-success">✓</span> Researcher agent
+                    active
+                  </p>
+                  <p>
+                    <span className="text-success">✓</span> Analyst agent active
+                  </p>
+                  <p>
+                    <span className="text-success">✓</span> Validator agent
+                    active
+                  </p>
+                  <p>
+                    <span className="text-foreground">→</span> Processing
+                    task...
+                  </p>
                   <p className="pt-2 text-foreground">
-                    <span className="text-success">✓</span> Analysis complete. Confidence: 94%
+                    <span className="text-success">✓</span> Analysis complete.
+                    Confidence: 94%
                   </p>
                 </div>
               </div>
@@ -270,7 +331,7 @@ export default function Landing() {
       {/* CTA Section */}
       <section className="py-24 border-t border-border">
         <div className="container mx-auto px-6">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -280,7 +341,8 @@ export default function Landing() {
               Ready to Build Your AI Workforce?
             </h2>
             <p className="text-muted-foreground font-light max-w-md mx-auto mb-8">
-              Join thousands of teams using WAAS to transform how they work with AI.
+              Join thousands of teams using WAAS to transform how they work with
+              AI.
             </p>
             <Link to="/signup">
               <Button size="lg" className="btn-primary-glow gap-2 h-11 px-6">

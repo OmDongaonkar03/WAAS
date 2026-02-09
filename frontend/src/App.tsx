@@ -8,12 +8,14 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import VerifyEmail from "./pages/VerifyMail";
 import Dashboard from "./pages/Dashboard";
 import Timeline from "./pages/Timeline";
 import History from "./pages/History";
 import Output from "./pages/Output";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import AuthCallback from './components/AuthCallback';
 
 const queryClient = new QueryClient();
 
@@ -29,6 +31,8 @@ const App = () => (
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
 
             {/* Protected routes - require authentication */}
             <Route

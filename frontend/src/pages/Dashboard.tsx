@@ -4,6 +4,7 @@ import { AIChat } from "@/components/ui/ai-chat";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { VerificationBanner } from "@/components/VerificationBanner";
 
 export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(false);
@@ -34,6 +35,7 @@ export default function Dashboard() {
 
   return (
     <AppLayout>
+      <VerificationBanner />
       <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-6 py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

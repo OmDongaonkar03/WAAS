@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,7 @@ const features = [
   "Unlimited agent configurations",
   "Full execution timeline access",
   "Team collaboration features",
-  "Priority support"
+  "Priority support",
 ];
 
 export default function Signup() {
@@ -25,17 +25,30 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { signup } = useAuth();
+  const { signup, user } = useAuth();
+
+  const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${
+    import.meta.env.VITE_GOOGLE_CLIENT_ID
+  }&redirect_uri=${
+    import.meta.env.VITE_API_URL
+  }/auth/google/callback&response_type=code&scope=email%20profile`;
+
+  // Redirect if user is already logged in
+  useEffect(() => {
+    if (!loading && user) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, loading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validation
     if (!name || !email || !password) {
       toast({
         title: "Missing fields",
         description: "Please fill in all required fields.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -44,7 +57,7 @@ export default function Signup() {
       toast({
         title: "Terms required",
         description: "Please agree to the terms and conditions.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -54,7 +67,7 @@ export default function Signup() {
       toast({
         title: "Weak password",
         description: "Password must be at least 8 characters long.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -67,7 +80,7 @@ export default function Signup() {
       if (result.success) {
         toast({
           title: "Account created!",
-          description: result.verificationSent 
+          description: result.verificationSent
             ? "Please check your email to verify your account."
             : "Welcome to WAAS. Let's build your first workflow.",
         });
@@ -82,7 +95,8 @@ export default function Signup() {
       } else {
         toast({
           title: "Signup failed",
-          description: result.error || "Unable to create account. Please try again.",
+          description:
+            result.error || "Unable to create account. Please try again.",
           variant: "destructive",
         });
       }
@@ -101,10 +115,7 @@ export default function Signup() {
     <div className="min-h-screen flex">
       {/* Left Panel - Visual */}
       <div className="hidden lg:flex flex-1 relative overflow-hidden bg-gradient-to-br from-primary/10 to-accent/10">
-        <Spotlight
-          className="-top-40 -left-40"
-          fill="hsl(199 89% 48%)"
-        />
+        <Spotlight className="-top-40 -left-40" fill="hsl(199 89% 48%)" />
         <div className="absolute inset-0 flex items-center justify-center p-12">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -113,13 +124,14 @@ export default function Signup() {
             className="max-w-lg"
           >
             <h2 className="text-3xl font-bold mb-6">
-              Start building with your <span className="gradient-text">AI Workforce</span>
+              Start building with your{" "}
+              <span className="gradient-text">AI Workforce</span>
             </h2>
             <p className="text-muted-foreground mb-8">
-              Join thousands of teams transforming how they work with AI. 
-              Get started in minutes.
+              Join thousands of teams transforming how they work with AI. Get
+              started in minutes.
             </p>
-            
+
             <div className="space-y-4">
               {features.map((feature, index) => (
                 <motion.div
@@ -148,29 +160,18 @@ export default function Signup() {
           transition={{ duration: 0.5 }}
           className="w-full max-w-md"
         >
-          {/* Logo */}
-          <Link to="/" className="inline-flex items-center gap-2 mb-8 group">
-            <div className="relative">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                <Cpu className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <div className="absolute inset-0 rounded-lg bg-primary/20 blur-lg group-hover:blur-xl transition-all" />
-            </div>
-            <span className="font-bold text-2xl gradient-text">WAAS</span>
-          </Link>
-
           <h1 className="text-3xl font-bold mb-2">Create an account</h1>
           <p className="text-muted-foreground mb-8">
             Get started with your free account
           </p>
 
           {/* Social Login */}
-          <div className="grid grid-cols-2 gap-4 mb-8">
-            <Button variant="outline" className="w-full gap-2">
-              <Github className="w-4 h-4" />
-              GitHub
-            </Button>
-            <Button variant="outline" className="w-full gap-2">
+          <div className="grid grid-cols-1 gap-4 mb-8">
+            <Button
+              variant="outline"
+              className="w-full gap-2"
+              onClick={() => (window.location.href = googleAuthUrl)}
+            >
               <Chrome className="w-4 h-4" />
               Google
             </Button>
@@ -250,8 +251,8 @@ export default function Signup() {
               </label>
             </div>
 
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full btn-primary-glow gap-2"
               disabled={loading}
             >
