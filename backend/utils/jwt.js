@@ -85,3 +85,23 @@ export const validatePassword = (password) => {
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
   return passwordRegex.test(password);
 };
+
+//email change token
+export const generateEmailChangeToken = (userId, oldEmail, newEmail) => {
+  return jwt.sign(
+    { userId, oldEmail, newEmail, type: "emailChange" },
+    process.env.JWT_SECRET,
+    { expiresIn: "15m" }
+  );
+};
+
+export const verifyEmailChangeToken = (token) => {
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (decoded.type !== "emailChange") return null;
+    return decoded;
+  } catch (error) {
+    console.error("Email change token verification error:", error.message);
+    return null;
+  }
+};

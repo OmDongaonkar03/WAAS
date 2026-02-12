@@ -24,6 +24,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [accessToken, setAccessToken] = useState(null);
   const refreshTimeoutRef = useRef(null);
+  const isRefreshingRef = useRef(false); // Prevent concurrent refresh requests
 
   /**
    * Schedule the next token refresh
@@ -36,6 +37,7 @@ export const AuthProvider = ({ children }) => {
     const refreshTime = tokenService.calculateRefreshTime(token);
     
     if (refreshTime && refreshTime > 0) {
+      console.log(`Token refresh scheduled in ${Math.round(refreshTime / 1000)}s`);
       refreshTimeoutRef.current = setTimeout(() => {
         refreshToken();
       }, refreshTime);
@@ -46,7 +48,16 @@ export const AuthProvider = ({ children }) => {
    * Refresh the access token
    */
   const refreshToken = async () => {
+    // Prevent concurrent refresh requests
+    if (isRefreshingRef.current) {
+      console.log("Token refresh already in progress, waiting...");
+      return { success: false, error: "Refresh already in progress" };
+    }
+
+    isRefreshingRef.current = true;
+
     try {
+      console.log("Refreshing access token...");
       const { ok, data } = await authService.refreshToken();
 
       if (!ok) {
@@ -62,6 +73,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       if (data.token) {
+        console.log("Token refreshed successfully");
         setAccessToken(data.token);
         scheduleTokenRefresh(data.token);
       }
@@ -75,7 +87,45 @@ export const AuthProvider = ({ children }) => {
       console.error("Token refresh error:", error);
       logout();
       return { success: false, error: error.message };
+    } finally {
+      isRefreshingRef.current = false;
     }
+  };
+
+  /**
+   * Get a valid token, refreshing if necessary
+   * THIS IS THE KEY FUNCTION YOU WERE MISSING!
+   */
+  const getValidToken = async () => {
+    if (!accessToken) {
+      console.log("No access token available");
+      return null;
+    }
+
+    // Check if token is expired or about to expire
+    const isExpired = tokenService.isTokenExpired(accessToken);
+    
+    if (isExpired) {
+      console.log("Token is expired, refreshing...");
+      const result = await refreshToken();
+      
+      if (result.success && result.data.token) {
+        return result.data.token;
+      } else {
+        console.error("Failed to refresh token");
+        return null;
+      }
+    }
+
+    // Token is still valid
+    return accessToken;
+  };
+
+  /**
+   * Update user data (for profile updates)
+   */
+  const updateUser = (updatedUser) => {
+    setUser(updatedUser);
   };
 
   /**
@@ -278,7 +328,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Get the current access token
+   * Get the current access token (may be expired - use getValidToken instead!)
+   * @deprecated Use getValidToken() instead
    */
   const getToken = () => {
     return accessToken;
@@ -294,9 +345,12 @@ export const AuthProvider = ({ children }) => {
     validateResetToken,
     resetPassword,
     isLoggedIn,
-    getToken,
+    getToken, 
+    getValidToken,
     refreshToken,
+    updateUser, 
     apiRequest,
+    token: accessToken, 
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -9,20 +9,24 @@ datasource db {
 }
 
 model User {
-  id                   String                @id @default(cuid())
-  email                String                @unique
-  name                 String
-  bio                  String?
-  password             String?
-  googleId             String?               @unique
-  profilePhoto         String?
-  verified             Boolean               @default(false)
-  hasCompletedOnboarding Boolean             @default(false)
-  refreshTokens        RefreshToken[]
-  verificationTokens   VerificationToken[]
-  passwordResetTokens  PasswordResetToken[]
-  createdAt            DateTime              @default(now())
-  updatedAt            DateTime              @updatedAt
+  id                      String                @id @default(cuid())
+  email                   String                @unique
+  name                    String
+  bio                     String?
+  password                String?
+  googleId                String?               @unique
+  profilePhoto            String?
+  verified                Boolean               @default(false)
+  hasCompletedOnboarding  Boolean               @default(false)
+  
+  // Relations
+  refreshTokens           RefreshToken[]
+  verificationTokens      VerificationToken[]
+  passwordResetTokens     PasswordResetToken[]
+  emailChangeTokens       EmailChangeToken[]    // NEW: For email change requests
+  
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
   
   @@index([email])
   @@index([googleId])
@@ -35,7 +39,7 @@ model RefreshToken {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
   createdAt DateTime @default(now())
-
+  
   @@index([userId])
   @@index([token])
 }
@@ -50,7 +54,7 @@ model VerificationToken {
   used      Boolean  @default(false)
   expiresAt DateTime
   createdAt DateTime @default(now())
-
+  
   @@index([userId])
   @@index([email])
   @@index([tokenHash])
@@ -66,8 +70,28 @@ model PasswordResetToken {
   used      Boolean  @default(false)
   expiresAt DateTime
   createdAt DateTime @default(now())
-
+  
   @@index([userId])
   @@index([email])
+  @@index([tokenHash])
+}
+
+// NEW: Email change token model
+model EmailChangeToken {
+  id           String   @id @default(cuid())
+  token        String   @db.Text
+  tokenHash    String   @unique
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  oldEmail     String   // Current email
+  newEmail     String   // Requested new email
+  used         Boolean  @default(false)
+  verified     Boolean  @default(false)  // Whether new email has been verified
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  
+  @@index([userId])
+  @@index([oldEmail])
+  @@index([newEmail])
   @@index([tokenHash])
 }

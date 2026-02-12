@@ -24,12 +24,20 @@ export const authenticate = asyncHandler(async (req, res, next) => {
     throw new AuthenticationError("Malformed token");
   }
 
-  const decoded = verifyAccessToken(token);
+  // Verify token
+  let decoded;
+  try {
+    decoded = verifyAccessToken(token);
+  } catch (error) {
+    console.error("Token verification error:", error.message);
+    throw new AuthenticationError("Invalid or expired token");
+  }
 
   if (!decoded) {
     throw new AuthenticationError("Invalid or expired token");
   }
 
+  // Fetch user from database
   let user;
   try {
     user = await prisma.user.findUnique({
@@ -44,6 +52,7 @@ export const authenticate = asyncHandler(async (req, res, next) => {
       },
     });
   } catch (error) {
+    console.error("Database error:", error);
     throw new DatabaseError(`Failed to fetch user: ${error.message}`);
   }
 
@@ -53,10 +62,11 @@ export const authenticate = asyncHandler(async (req, res, next) => {
 
   if (!user.verified) {
     throw new AuthorizationError(
-      "Email not verified. Please check your email for verification link.",
+      "Email not verified. Please check your email for verification link."
     );
   }
 
+  // Attach user to request
   req.user = user;
   
   next();
